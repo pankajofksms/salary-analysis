@@ -14,10 +14,12 @@ public class CompanyAnalyzer {
     private final Map<Integer, Employee> employeeMap;
     private final Employee ceo;
     private static final int MAX_HIERARCHY_DEPTH = 4;
+    private final SalaryValidator salaryValidator;
 
     public CompanyAnalyzer(List<Employee> employees) {
         this.employees = employees;
         this.employeeMap = new HashMap<>();
+        this.salaryValidator = new SalaryValidator(employees);
 
         for (Employee emp : employees) {
             employeeMap.put(emp.getId(), emp);
@@ -78,5 +80,9 @@ public class CompanyAnalyzer {
         }
 
         return report.toString();
+    }
+
+    public String validateSalaries() {
+        return salaryValidator.validateSalaries();
     }
 }

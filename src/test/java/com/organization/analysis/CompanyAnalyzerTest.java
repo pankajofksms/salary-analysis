@@ -1,9 +1,6 @@
 package com.organization.analysis;
 
-import com.organization.analysis.exceptions.InvalidManagerReferenceException;
-import com.organization.analysis.exceptions.MultipleCEOsException;
-import com.organization.analysis.exceptions.NoCEOFoundException;
-import com.organization.analysis.exceptions.TooManyManagersException;
+import com.organization.analysis.exceptions.*;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +57,7 @@ class CompanyAnalyzerTest {
     @Test
     void testFindReportingDepth_TooManyManagers_ShouldThrowException() {
         List<Employee> employees = Arrays.asList(
-                new Employee(123, "Joe", "Doe", 60000, null),  // CEO
+                new Employee(123, "Pankaj", "Kumar", 60000, null),  // CEO
                 new Employee(124, "Manager1", "One", 50000, 123),
                 new Employee(125, "Manager2", "Two", 47000, 124),
                 new Employee(200, "Manager3", "Three", 46000, 125),
@@ -76,12 +73,52 @@ class CompanyAnalyzerTest {
     @Test
     void testFindReportingDepth_InvalidManager_ShouldThrowException() {
         List<Employee> employees = Arrays.asList(
-                new Employee(123, "Joe", "Doe", 60000, null),  // CEO
-                new Employee(124, "Martin", "Chekov", 45000, 999) // Manager ID 999 does not exist
+                new Employee(123, "Pankaj", "Kumar", 60000, null),  // CEO
+                new Employee(124, "Rohan", "Krishna",  45000, 999) // Manager ID 999 does not exist
         );
 
         CompanyAnalyzer analyzer = new CompanyAnalyzer(employees);
 
         assertThrows(InvalidManagerReferenceException.class, () -> analyzer.findReportingDepth(employees.get(1)));
+    }
+
+    @Test
+    void testValidateSalaries_ManagerWithinAllowedRange() {
+        List<Employee> employees = Arrays.asList(
+                new Employee(123, "Pankaj", "Kumar", 60000, null),  // CEO
+                new Employee(124, "Rohan", "Krishna", 50000, 123),
+                new Employee(125, "Sagar", "Haider", 55000, 123)
+        );
+
+        SalaryValidator salaryValidator = new SalaryValidator(employees);
+        String report = salaryValidator.validateSalaries();
+
+        assertFalse(report.contains("earns less") || report.contains("earns more"));
+    }
+
+    @Test
+    void testValidateSalaries_ManagerEarningTooLittle_ShouldThrowException() {
+        List<Employee> employees = Arrays.asList(
+                new Employee(123, "Pankaj", "Kumar", 60000, null),  // CEO
+                new Employee(124, "Rohan", "Krishna",  40000, 123), // Too low
+                new Employee(125, "Sagar", "Haider", 42000, 123)
+        );
+
+        SalaryValidator salaryValidator = new SalaryValidator(employees);
+
+        assertThrows(SalaryViolationException.class, salaryValidator::validateSalaries);
+    }
+
+    @Test
+    void testValidateSalaries_ManagerEarningTooMuch_ShouldThrowException() {
+        List<Employee> employees = Arrays.asList(
+                new Employee(123, "Pankaj", "Kumar", 60000, null),  // CEO
+                new Employee(124, "Rohan", "Krishna",  90000, 123), // Too high
+                new Employee(125, "Sagar", "Haider", 50000, 123)
+        );
+
+        SalaryValidator salaryValidator = new SalaryValidator(employees);
+
+        assertThrows(SalaryViolationException.class, salaryValidator::validateSalaries);
     }
 }
